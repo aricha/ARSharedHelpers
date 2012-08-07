@@ -23,11 +23,11 @@ void executeDebugBlock(VoidBlock block) {
         block();
 }
 
-void replaced_NSLog(NSString *logstr, ...) {}
+static void replaced_NSLog(NSString *logstr, ...) {}
 
 static BOOL NSLogDisabled = NO;
 
-void disableNSLog() {
+void disableNSLog(void) {
     MSHookFunction(NSLog, replaced_NSLog, NULL);
     NSLogDisabled = YES;
 }
@@ -48,7 +48,7 @@ void disableNSLog() {
 ////    NSLog((@"symbol class %@, symbol %@\n %@"), [symbol class], symbol, [NSString stringWithFormat:format, ##__VA_ARGS__]);
 //}
 
-void UninstallUncaughtExceptionHandler() {
+void UninstallUncaughtExceptionHandler(void) {
     NSSetUncaughtExceptionHandler(NULL);
     signal(SIGABRT, SIG_DFL);
 	signal(SIGILL, SIG_DFL);
@@ -95,7 +95,7 @@ static void SignalHandler(int signal)
 static int numSigs = 6;
 static int sigs[] = {SIGABRT, SIGILL, SIGSEGV, SIGFPE, SIGBUS, SIGPIPE};
 
-void InstallUncaughtExceptionHandler()
+void InstallUncaughtExceptionHandler(void)
 {
     static BOOL isInstalled = NO;
     if (isInstalled)

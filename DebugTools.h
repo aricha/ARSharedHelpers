@@ -15,12 +15,12 @@ typedef void (^VoidBlock)(void);
 // it won't be compiled at all in release
 void executeDebugBlock(VoidBlock block);
 
-void disableNSLog();
+void disableNSLog(void);
 
 // Logs the stack trace when a signal / exception is received, but otherwise
 // does nothing to handle it
-void InstallUncaughtExceptionHandler();
-void UninstallUncaughtExceptionHandler();
+void InstallUncaughtExceptionHandler(void);
+void UninstallUncaughtExceptionHandler(void);
 #else
 #define executeDebugBlock(block)
 #define disableNSLog()
