@@ -6,7 +6,6 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "SubstrateAdditions.h"
 
 typedef void (^VoidBlock)(void);
 
