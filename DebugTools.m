@@ -18,7 +18,7 @@ void setEnableBacktrace(BOOL enable) {
 }
 
 #ifdef DEBUG
-void executeDebugBlock(VoidBlock block) {
+void executeDebugBlock(DTVoidBlock block) {
     if (block)
         block();
 }
