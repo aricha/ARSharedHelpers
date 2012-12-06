@@ -32,3 +32,7 @@ BOOL objectRespondsToSelector(id obj, SEL sel);
 #define performIfRespondsWithObjectWithObject(obj, sel, arg1, arg2) (responds(obj, sel) ? [obj performSelector:@selector(sel) withObject:arg1 withObject:arg2] : nil)
 
 #define retrieveStaticClass(cls) if (!cls) cls = NSClassFromString([[NSString stringWithUTF8String:#cls] substringFromIndex:1])
+
+#define MSHookIvarSafe(obj, name) (MSHookIvar<id>(obj, #name) != NULL ? MSHookIvar<id>(obj, #name) : nil)
+#define MSIvarExists(class, name) (class_getInstanceVariable(class, #name) != NULL)
+#define MSSafeSetIvar(obj, name, newIvar) if (MSIvarExists([obj class], name)) MSHookIvar<id>(obj, #name) = newIvar
