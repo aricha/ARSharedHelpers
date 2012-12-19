@@ -51,7 +51,7 @@ void setEnableBacktrace(BOOL enable);
 #define LOG_FN_CALLER DLog(@"was called by %@", [NSThread backtraceOfDepth:1 fromStackSymbols:[NSThread callStackSymbols]]);
 #define LOG_FN_CALL_FINISHED DLog(@"has finished")
 #define LOG_LINE DLog(@"")
-#define LOG_THREAD DLog(@"Main thread: %@", ([NSThread isMainThread] ? @"YES", @"NO"))
+#define LOG_THREAD DLog(@"Main thread: %@", ([NSThread isMainThread] ? @"YES" : @"NO"))
 #define LOG_BACKTRACE DLog(@"Backtrace: %@", [NSThread callStackSymbols])
 #else
 #define DLog(fmt, ...)
