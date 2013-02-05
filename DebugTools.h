@@ -7,20 +7,26 @@
 
 #import <Foundation/Foundation.h>
 
+#ifdef __cplusplus
+#define DTExtern extern "C"
+#else
+#define DTExtern extern
+#endif
+
 typedef void (^VoidBlock)(void);
 
 #ifdef DEBUG
 // Executes block in debug mode, but does nothing in release mode - works best
 // with block literals declared within the function call, since the macro means
 // it won't be compiled at all in release
-void executeDebugBlock(VoidBlock block);
+DTExtern void executeDebugBlock(VoidBlock block);
 
-void disableNSLog(void);
+DTExtern void disableNSLog(void);
 
 // Logs the stack trace when a signal / exception is received, but otherwise
 // does nothing to handle it
-void InstallUncaughtExceptionHandler(void);
-void UninstallUncaughtExceptionHandler(void);
+DTExtern void InstallUncaughtExceptionHandler(void);
+DTExtern void UninstallUncaughtExceptionHandler(void);
 #else
 #define executeDebugBlock(block)
 #define disableNSLog()
@@ -29,7 +35,7 @@ void UninstallUncaughtExceptionHandler(void);
 #endif
 
 // Defaults to enabled - used in DLog and some other macros here.
-void setEnableBacktrace(BOOL enable);
+DTExtern void setEnableBacktrace(BOOL enable);
 
 @interface NSThread (StackTraceAdditions)
 + (NSString *)appBacktraceOfDepth:(int)depth fromStackSymbols:(NSArray *)frames;
