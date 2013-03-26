@@ -13,13 +13,13 @@
 #define DTExtern extern
 #endif
 
-typedef void (^VoidBlock)(void);
+typedef void (^DTVoidBlock)(void);
 
 #ifdef DEBUG
 // Executes block in debug mode, but does nothing in release mode - works best
 // with block literals declared within the function call, since the macro means
 // it won't be compiled at all in release
-DTExtern void executeDebugBlock(VoidBlock block);
+DTExtern void executeDebugBlock(DTVoidBlock block);
 
 DTExtern void disableNSLog(void);
 
