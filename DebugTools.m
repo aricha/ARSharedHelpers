@@ -1,6 +1,5 @@
 //
 //  DebugTools.m
-//  Jukebox
 //
 //  Created by Andrew Richardson on 12-05-04.
 //  Copyright (c) 2012. All rights reserved.
@@ -63,8 +62,7 @@ void UninstallUncaughtExceptionHandler(void) {
 		signal(sigs[i], SIG_DFL);
 }
 
-void InstallUncaughtExceptionHandler(void)
-{
+void InstallUncaughtExceptionHandler(void) {
     static BOOL isInstalled = NO;
     if (isInstalled)
         return;
@@ -88,6 +86,18 @@ void InstallUncaughtExceptionHandler(void)
         signal(sigs[i], SignalHandler);
     }
 }
+
+static IMP OrigDoesNotRecognizeSelector;
+static void DTDoesNotRecognizeSelector(id self, SEL _cmd, SEL selector) {
+	NSLog(@"Object %@ does not recognize selector %s; backtrace: %@", self, sel_getName(selector), [NSThread callStackSymbols]);
+	OrigDoesNotRecognizeSelector(self, _cmd, selector);
+}
+
+__attribute__((constructor))
+static void DTConstructor(void) {
+	MSHookMessageEx([NSObject class], @selector(doesNotRecognizeSelector:), (IMP)DTDoesNotRecognizeSelector, &OrigDoesNotRecognizeSelector);
+}
+
 #endif
 
 // The following is adapted from

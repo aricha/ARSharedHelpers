@@ -21,8 +21,6 @@ typedef void (^DTVoidBlock)(void);
 // it won't be compiled at all in release
 DTExtern void executeDebugBlock(DTVoidBlock block);
 
-DTExtern void disableNSLog(void);
-
 // Logs the stack trace when a signal / exception is received, but otherwise
 // does nothing to handle it
 DTExtern void InstallUncaughtExceptionHandler(void);
