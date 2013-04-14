@@ -24,7 +24,17 @@ void MSHookMessageWithBlockAssociated(Class cls, SEL sel, void *block, id associ
 // could not be found.
 IMP MSGetImpForAssociatedObject(id associatedObj, SEL sel);
 
-BOOL objectRespondsToSelector(id obj, SEL sel);
+static inline BOOL objectRespondsToSelector(id obj, SEL sel)
+{
+    if (!obj || !sel)
+        return NO;
+    else if (![obj respondsToSelector:sel]) {
+        NSLog(@"Object %@ does NOT respond to selector %@", obj, NSStringFromSelector(sel));
+        return NO;
+    }
+    
+    return YES;
+}
 
 #define responds(obj, sel) (objectRespondsToSelector(obj, @selector(sel)))
 #define performIfResponds(obj, sel) (responds(obj, sel) ? [obj performSelector:@selector(sel)] : nil)

@@ -1,6 +1,5 @@
 //
 //  DebugTools.m
-//  Jukebox
 //
 //  Created by Andrew Richardson on 12-05-04.
 //  Copyright (c) 2012. All rights reserved.
@@ -22,31 +21,6 @@ void executeDebugBlock(DTVoidBlock block) {
     if (block)
         block();
 }
-
-static void replaced_NSLog(NSString *logstr, ...) {}
-
-static BOOL NSLogDisabled = NO;
-
-void disableNSLog(void) {
-    MSHookFunction(NSLog, replaced_NSLog, NULL);
-    NSLogDisabled = YES;
-}
-
-//void DLog(NSString *format, ...) {
-//    va_list args;
-//    va_start (args, format);
-//    if (![format hasSuffix: @"\n"]) {
-//        format = [format stringByAppendingString: @"\n"];
-//    }
-//    NSString *body = [[NSString alloc] initWithFormat:[NSString stringWithFormat:@"%@%@", (backtraceEnabled ? [[NSThread backtraceInRange:NSMakeRange(1, 1)] stringByAppendingFormat:@": "] : @""), format] arguments: args];
-//    va_end (args);
-//    if (NSLogDisabled)
-//        printf("%s", [body UTF8String]);
-//    else
-//        NSLog(@"%@", body);
-//    [body release];
-////    NSLog((@"symbol class %@, symbol %@\n %@"), [symbol class], symbol, [NSString stringWithFormat:format, ##__VA_ARGS__]);
-//}
 
 NSUncaughtExceptionHandler *prevExceptionHandler = NULL;
 
@@ -74,7 +48,7 @@ static void HandleException(NSException *exception)
         [exception raise];
 }
 
-static NSMutableDictionary *oldSigHandlers = nil;
+static CFMutableDictionaryRef oldSigHandlers;
 
 static void SignalHandler(int signal)
 {
@@ -83,20 +57,22 @@ static void SignalHandler(int signal)
     
     UninstallUncaughtExceptionHandler();
     
-    NSValue *oldHandlerPtr = [oldSigHandlers objectForKey:[NSNumber numberWithInt:signal]];
-    if (oldHandlerPtr) {
-        void (*handler)(int) = [oldHandlerPtr pointerValue];
-        handler(signal);
-    }
+    void (*oldHandler)(int) = CFDictionaryGetValue(oldSigHandlers, signal);
+    if (oldHandler)
+        oldHandler(signal);
     else
         kill(getpid(), signal);
 }
 
-static int numSigs = 6;
-static int sigs[] = {SIGABRT, SIGILL, SIGSEGV, SIGFPE, SIGBUS, SIGPIPE};
+static const int sigs[] = {SIGABRT, SIGILL, SIGSEGV, SIGFPE, SIGBUS, SIGPIPE, SIGQUIT, SIGTRAP, SIGEMT, SIGSYS};
 
-void InstallUncaughtExceptionHandler(void)
-{
+void UninstallUncaughtExceptionHandler(void) {
+    NSSetUncaughtExceptionHandler(prevExceptionHandler);
+	for (int i = 0; i < sizeof(sigs); i++)
+		signal(sigs[i], SIG_DFL);
+}
+
+void InstallUncaughtExceptionHandler(void) {
     static BOOL isInstalled = NO;
     if (isInstalled)
         return;
@@ -105,30 +81,33 @@ void InstallUncaughtExceptionHandler(void)
     
     prevExceptionHandler = NSGetUncaughtExceptionHandler();
     NSSetUncaughtExceptionHandler(&HandleException);
+	
+	oldSigHandlers = CFDictionaryCreateMutable(kCFAllocatorDefault, sizeof(sigs), NULL, NULL);
     
-    for (int i = 0; i < numSigs; i++) {
+    for (int i = 0; i < sizeof(sigs); i++) {
         struct sigaction action;
         void *oldHandler = NULL;
         
         sigaction(sigs[i], NULL, &action);
         oldHandler = action.__sigaction_u.__sa_handler;
-        if (oldHandler != NULL) {
-            if (!oldSigHandlers)
-                oldSigHandlers = [[NSMutableDictionary alloc] init];
-            
-            [oldSigHandlers setObject:[NSValue valueWithPointer:oldHandler] forKey:[NSNumber numberWithInt:sigs[i]]];
-        }
+        if (oldHandler)
+			CFDictionarySetValue(oldSigHandlers, sigs[i], oldHandler);
         
         signal(sigs[i], SignalHandler);
     }
-    
-    signal(SIGABRT, SignalHandler);
-    signal(SIGILL, SignalHandler);
-    signal(SIGSEGV, SignalHandler);
-    signal(SIGFPE, SignalHandler);
-    signal(SIGBUS, SignalHandler);
-    signal(SIGPIPE, SignalHandler);
 }
+
+static IMP OrigDoesNotRecognizeSelector;
+static void DTDoesNotRecognizeSelector(id self, SEL _cmd, SEL selector) {
+	NSLog(@"Object %@ does not recognize selector %s; backtrace: %@", self, sel_getName(selector), [NSThread callStackSymbols]);
+	OrigDoesNotRecognizeSelector(self, _cmd, selector);
+}
+
+__attribute__((constructor))
+static void DTConstructor(void) {
+	MSHookMessageEx([NSObject class], @selector(doesNotRecognizeSelector:), (IMP)DTDoesNotRecognizeSelector, &OrigDoesNotRecognizeSelector);
+}
+
 #endif
 
 // The following is adapted from

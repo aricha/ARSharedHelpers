@@ -7,20 +7,24 @@
 
 #import <Foundation/Foundation.h>
 
+#ifdef __cplusplus
+#define DTExtern extern "C"
+#else
+#define DTExtern extern
+#endif
+
 typedef void (^DTVoidBlock)(void);
 
 #ifdef DEBUG
 // Executes block in debug mode, but does nothing in release mode - works best
 // with block literals declared within the function call, since the macro means
 // it won't be compiled at all in release
-void executeDebugBlock(DTVoidBlock block);
-
-void disableNSLog(void);
+DTExtern void executeDebugBlock(DTVoidBlock block);
 
 // Logs the stack trace when a signal / exception is received, but otherwise
 // does nothing to handle it
-void InstallUncaughtExceptionHandler(void);
-void UninstallUncaughtExceptionHandler(void);
+DTExtern void InstallUncaughtExceptionHandler(void);
+DTExtern void UninstallUncaughtExceptionHandler(void);
 #else
 #define executeDebugBlock(block)
 #define disableNSLog()
@@ -29,7 +33,7 @@ void UninstallUncaughtExceptionHandler(void);
 #endif
 
 // Defaults to enabled - used in DLog and some other macros here.
-void setEnableBacktrace(BOOL enable);
+DTExtern void setEnableBacktrace(BOOL enable);
 
 @interface NSThread (StackTraceAdditions)
 + (NSString *)appBacktraceOfDepth:(int)depth fromStackSymbols:(NSArray *)frames;
@@ -51,7 +55,7 @@ void setEnableBacktrace(BOOL enable);
 #define LOG_FN_CALLER DLog(@"was called by %@", [NSThread backtraceOfDepth:1 fromStackSymbols:[NSThread callStackSymbols]]);
 #define LOG_FN_CALL_FINISHED DLog(@"has finished")
 #define LOG_LINE DLog(@"")
-#define LOG_THREAD DLog(@"Main thread: %@", ([NSThread isMainThread] ? @"YES", @"NO"))
+#define LOG_THREAD DLog(@"Main thread: %@", ([NSThread isMainThread] ? @"YES" : @"NO"))
 #define LOG_BACKTRACE DLog(@"Backtrace: %@", [NSThread callStackSymbols])
 #else
 #define DLog(fmt, ...)

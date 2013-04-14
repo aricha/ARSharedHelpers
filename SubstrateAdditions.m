@@ -49,15 +49,3 @@ IMP MSGetImpForAssociatedObject(id associatedObj, SEL sel)
     
     return associatedIMP;
 }
-
-BOOL objectRespondsToSelector(id obj, SEL sel)
-{
-    if (!obj || !sel)
-        return NO;
-    else if (![obj respondsToSelector:sel]) {
-        NSLog(@"Object %@ does NOT respond to selector %@", obj, NSStringFromSelector(sel));
-        return NO;
-    }
-    
-    return YES;
-}
