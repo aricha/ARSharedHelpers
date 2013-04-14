@@ -48,8 +48,10 @@ void disableNSLog(void) {
 ////    NSLog((@"symbol class %@, symbol %@\n %@"), [symbol class], symbol, [NSString stringWithFormat:format, ##__VA_ARGS__]);
 //}
 
+NSUncaughtExceptionHandler *prevExceptionHandler = NULL;
+
 void UninstallUncaughtExceptionHandler(void) {
-    NSSetUncaughtExceptionHandler(NULL);
+    NSSetUncaughtExceptionHandler(prevExceptionHandler);
     signal(SIGABRT, SIG_DFL);
 	signal(SIGILL, SIG_DFL);
 	signal(SIGSEGV, SIG_DFL);
@@ -57,8 +59,6 @@ void UninstallUncaughtExceptionHandler(void) {
 	signal(SIGBUS, SIG_DFL);
 	signal(SIGPIPE, SIG_DFL);
 }
-
-NSUncaughtExceptionHandler *prevExceptionHandler = NULL;
 
 static void HandleException(NSException *exception)
 {
